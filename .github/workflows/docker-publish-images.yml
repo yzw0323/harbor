@@ -41,8 +41,8 @@ jobs:
       - uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: yzw0323
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - run: cd .. && make patch
 
@@ -55,11 +55,9 @@ jobs:
           context: ./harbor
           file: ./harbor/make/photon/${{ matrix.component }}/Dockerfile.base
           platforms: linux/amd64,linux/arm64
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ env.tag }}
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ghcr.io/${{ github.repository }}/harbor-${{ matrix.component }}-base:${{ env.tag }}
+          build-args: version=${{ env.version }}
+          push: true
+          tags: yzw0323/harbor-arm-base:${{ env.version }}
 
   docker-image:
     needs:
@@ -95,7 +93,7 @@ jobs:
 
       - uses: actions/setup-go@v3
         with:
-          go-version: '^1.20.x'
+          go-version: '^1.20.8'
 
       - uses: docker/setup-qemu-action@v2
       - uses: docker/setup-buildx-action@v2
@@ -108,16 +106,16 @@ jobs:
       - uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: yzw0323
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - id: prepare
         run: echo "tag=$(cat ../version)" >> $GITHUB_ENV
 
       - name: Build & Publish images
         env:
-          IMAGENAMESPACE: ghcr.io/${{ github.repository }}
-          BASEIMAGENAMESPACE: ghcr.io/${{ github.repository }}
+          IMAGENAMESPACE: yzw0323/${{ github.repository }}
+          BASEIMAGENAMESPACE: yzw0323/harbor-arm-base
           IMAGELABELS: org.opencontainers.image.source=https://github.com/${{ github.repository }}
           MULTIARCH: true
           TRIVYFLAG: true
